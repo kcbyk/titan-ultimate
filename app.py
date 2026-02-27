@@ -1,10 +1,10 @@
 import os, requests, base64, firebase_admin
 from firebase_admin import credentials, firestore
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# --- 🔐 TITAN-X ZIRHLI CEPHANELİK ---
+# --- 🔐 TITAN-X ZIRHLI CEPHANELİK (10 GROQ ANAHTARI) ---
 ENCRYPTED_KEYS = [
     "Z3NrX2dTQ1dTcUUwblFTZTlmOVVMa3pEV0dyeWIzRllnQUFjNHFuQTVYc1dUaE83dE52V1psRnY=",
     "Z3NrXzNiY0pLc2FOZGJwa09JOVdMVEdXZ3liM0ZZeEt5cUJhc1FpSFl6MDNGWGhTc1R0WVF3",
@@ -40,29 +40,31 @@ db = firestore.client()
 
 @app.route('/')
 def ana_sayfa():
-    # Ayrı mimari: Doğrudan index.html dosyasını okuyup gönderir.
-    return send_from_directory('.', 'index.html')
+    return render_template_string(HTML_UI)
 
 @app.route('/api/sor', methods=['POST'])
 def sor():
     mesaj = request.json.get('msg')
-    cevap = "Sistem aktif."
     for key in GROQ_KEYS:
         try:
-            res = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {key}"},
-                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "system", "content": "Sen S.E.N.O.L TITAN-X'sin. Şenol'un CEO asistanısın ve yazılım dehasısın."}, {"role": "user", "content": mesaj}]},
-                timeout=12
-            )
-            if res.status_code == 200: 
-                cevap = res.json()['choices'][0]['message']['content']
-                break
+            res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers={"Authorization": f"Bearer {key}"}, json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "system", "content": "Sen TITAN-X OMEGA'sın."}, {"role": "user", "content": mesaj}]}, timeout=10)
+            if res.status_code == 200: return jsonify({"cevap": res.json()['choices'][0]['message']['content']})
         except: continue
-    return jsonify({"cevap": cevap})
+    return jsonify({"cevap": "⚠️ API Hatası!"})
 
-# --- KOYEB SUNUCU ATEŞLEMESİ ---
+# --- MODERN ARAYÜZ ---
+HTML_UI = """
+<!DOCTYPE html><html><head><title>TITAN-X OMEGA</title><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{background:#070a13;color:#00ffcc;font-family:monospace;padding:15px;margin:0;display:flex;flex-direction:column;height:100vh;}
+#chat{flex:1;overflow-y:auto;border:1px solid #00ffcc33;padding:10px;margin-bottom:10px;}
+.msg{margin-bottom:10px;padding:8px;border-radius:4px;background:#141f33;} input{flex:1;background:#000;border:1px solid #00ffcc;color:#00ffcc;padding:12px;}
+button{background:#00ffcc;color:#000;border:none;padding:12px;font-weight:bold;cursor:pointer;}</style></head>
+<body><h2>🚀 TITAN-X @ RENDER</h2><div id="chat">Sistem çevrimiçi.</div><div style="display:flex;gap:5px;">
+<input type="text" id="in" placeholder="Emret..."><button onclick="g()">GÖNDER</button></div>
+<script>async function g(){let i=document.getElementById('in'); let m=i.value; if(!m)return; i.value=''; document.getElementById('chat').innerHTML+=`<div>Şenol: ${m}</div>`;
+let r=await fetch('/api/sor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({msg:m})}); let d=await r.json();
+document.getElementById('chat').innerHTML+=`<div style='color:#0f0'>TITAN: ${d.cevap}</div>`;}</script></body></html>
+"""
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
-                
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
