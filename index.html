@@ -2,61 +2,25 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TITAN-X OMEGA</title>
     <style>
-        body { background: #050505; color: #00ffcc; font-family: monospace; padding: 20px; margin: 0; }
-        h2 { border-bottom: 2px solid #00ffcc; padding-bottom: 10px; text-align: center; }
-        #chat { height: 60vh; overflow-y: auto; background: #111; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #333; }
-        .msg { margin-bottom: 15px; padding: 10px; border-radius: 5px; word-wrap: break-word; line-height: 1.4; }
-        .user { background: #1a2639; color: #66b3ff; border-left: 4px solid #66b3ff; }
-        .ai { background: #0d1a18; color: #00ffcc; border-left: 4px solid #00ffcc; }
-        .isim { font-weight: bold; display: block; margin-bottom: 5px; opacity: 0.7; font-size: 12px; }
-        .kontrol { display: flex; gap: 10px; }
-        input { flex: 1; padding: 15px; background: #000; color: #00ffcc; border: 1px solid #00ffcc; border-radius: 5px; outline: none; font-size: 16px; }
-        button { padding: 15px 20px; background: #00ffcc; color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+        #chat { border: 1px solid #0f0; height: 300px; overflow-y: scroll; margin-bottom: 10px; padding: 10px; }
+        .m { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h2>🚀 TITAN-X OMEGA (AYRIK MİMARİ)</h2>
-    <div id="chat">
-        <div class="msg ai"><span class="isim">SİSTEM</span>Arayüz ve Beyin başarıyla ayrıldı. Emirlerini bekliyorum Patron.</div>
-    </div>
-    <div class="kontrol">
-        <input type="text" id="komut" placeholder="Emret..." onkeypress="if(event.key === 'Enter') gonder()">
-        <button onclick="gonder()">GÖNDER</button>
-    </div>
-
+    <div id="chat">Sistem Başlatıldı...</div>
+    <input type="text" id="in">
+    <button onclick="g()">GÖNDER</button>
     <script>
-        async function gonder() {
-            let input = document.getElementById('komut');
-            let metin = input.value.trim();
-            if (!metin) return;
-            input.value = '';
-
-            let chat = document.getElementById('chat');
-            chat.innerHTML += `<div class="msg user"><span class="isim">ŞENOL</span>${metin}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-
-            let bekleyenId = "b_" + Date.now();
-            chat.innerHTML += `<div class="msg ai" id="${bekleyenId}"><span class="isim">TITAN-X</span>İşleniyor...</div>`;
-            chat.scrollTop = chat.scrollHeight;
-
-            try {
-                let istek = await fetch('/api/sor', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ msg: metin })
-                });
-                let yanit = await istek.json();
-                
-                document.getElementById(bekleyenId).remove();
-                chat.innerHTML += `<div class="msg ai"><span class="isim">TITAN-X</span>${yanit.cevap}</div>`;
-            } catch (e) {
-                document.getElementById(bekleyenId).remove();
-                chat.innerHTML += `<div class="msg ai" style="border-left: 4px solid red; color: red;"><span class="isim">HATA</span>Sistem çöktü.</div>`;
-            }
-            chat.scrollTop = chat.scrollHeight;
+        async function g() {
+            let i = document.getElementById('in');
+            let m = i.value;
+            document.getElementById('chat').innerHTML += `<div class='m'>Şenol: ${m}</div>`;
+            let res = await fetch('/api/sor', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({msg: m})});
+            let d = await res.json();
+            document.getElementById('chat').innerHTML += `<div class='m'>TITAN: ${d.cevap}</div>`;
         }
     </script>
 </body>
