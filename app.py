@@ -24,16 +24,20 @@ def anahtarlari_coz():
 
 GROQ_KEYS = anahtarlari_coz()
 
-# --- 🔥 FIREBASE ÖLÜMSÜZ HAFIZA BAĞLANTISI ---
-# Screenshot_2026-02-27-07-47-14-714 verileriyle yapılandırıldı.
+# --- # --- 🔥 FIREBASE ÖLÜMSÜZ HAFIZA (EKSİKSİZ KİMLİK) ---
 if not firebase_admin._apps:
-    cred = credentials.Certificate({
-        "type": "service_account",
-        "project_id": "senkl-25cc8",
-        "private_key_id": "4ef6b0fa9c3e4eb09fc482a65b503fcc0172311d",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDhC6kgAKCjQxq...\n-----END PRIVATE KEY-----\n".replace("\\n", "\n"),
-        "client_email": "firebase-adminsdk-fbsvc@senkl-25cc8.iam.gserviceaccount.com"
-    })
+    FB_CRED = {
+      "type": "service_account",
+      "project_id": "senkl-25cc8",
+      "private_key_id": "c33ab2b59a2e030c3d2e6b7934f34ce3f5a83635",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCdDCLH5Hlygzus\n16AD+mHWGlkhbFfwQb/40SLnphugpd9WtgdVlkiAw2vO1EKQGjIcPUMr8jkL/Js4\nDou0OZwB+kWMuZURdAPDRTh8/n2uJPcG7WjaTuug/1sJXAQ6ClRWBwALCC4D6rGf\nDr5mwca6pLg0Cqhg7MfhDnNKDdxigb/MQ5dtAveDzmJ0qBYQIcdA18Qq1pz4iZh6\nS3CIWMYy23joJI6XFT1oP6lEMV+166mKJ7ruWJuXrbboBy1I0Iur49a8b3qjQuLE\nWmVxj82ER7BequnDD3ubNXxhqYpVsFagwpVmH/K1yEUXi2mSVdsf00Fx/NE/H7wQ\nfjYTR/iLAgMBAAECggEAIlbW/BJPI+TiFYcIbBZBcklMl+xSxiv6R/OiyDgf7l6W\nmSUwMVys+crBNfZfn5a6wkX6/A74vlA7uGQl1ACMxjntHzotCCXv9LCcC2iyHnPi\nt9cNiD6dcxSi2UcPfYloq27YaZEeTqjwsbDNnTZdt83woSB7dMYRZnp8ZwLk33zb\nsVkNSoYtUwJ1i4CznO5JEKyZK1L8Kbnc6lXLxmzm9plUZlTngtFJhTlDyb6FRVZE\nhowPpm7NmCZj21DlFXwasJPBamdlu66hvDb6mjlbd1GWdmlbCDw6A2s9eWDTJ5sj\nMJ3rfHw9wds6CAXAxWLM+STLXEc6BQjTp4hpee7iQQKBgQDPQbw6qT7hec2qvFzH\n4cnlSZvTxDPqykol4RBzOokhAZI7xtKChduYax1koGebRtKb0L7ur+d+Wt+gPK69\nnJbkG3buHtgLf5njyNbDodD1PNVhqnHXwL59mZvybcyWSWlvNihjJvMz9kplpXJl\nlvTgIKy3pZnD3wrkkX+J0mnL2wKBgQDB+3Sg+roezqkQXWUCsRQRk2B+LQmIr7HF\nDt/FT/FZUAIMXaTVqBhyLDYCITE4l5+BVFtJ5RMuekua8bf4FIiKpaQA1lCm7dhr\nTGR2KiQkjIctXl5q1tjdtp4Pf1g+0lGk7b6aP1KT+naM44q6QI7r/cwG8FHuwC2N\n2ggfgn79EQKBgFgOEa7KoVCis2LKzJCPuXuVHoOGZJhogcA+MwMB56kCReLnwiB6\nRqYnPEG4dMxf9rMEqVo3mh7w9PnbTlJ46RLZKFpa+GdKO1OvzK8pXOIUioQIKn4E\nAerTDJKfW8CuSAFb/STDM6jsBwfQlx3aWQewWjFcRkwVw0cBGjKwFwrpAoGBAKmq\nsMYkxyovA/zGU5VZIP6Gcz2pUs91LP35FoxUcfr2WfRK6+Pc1RT3yn1uXsjrBZ5v\nFDG75V0fpoVtqsWX4B2054+75Gs9Wa/v72bTUS2OpKVwBxFXvfOeyP0xGxRHjRW+\nxJnRjP7VcV+lni9uTBPptszS4jb7bFzIOZal40ChAoGASdyoZ2gU56BN4R+uq213\nDzAWESmCgTvROsLucQqikJU9iM+B+GPywLboc/awoOGhNqCpmTOsyi5867ehI8a6\n5BpHBsSekUP4EX/b5UkJVzLCVM2sl9KkD4RWZ8pXft8yMa5WvzI3x4moBAOzBRRe\nuEPRxRocUlr9wPXEe3WzUXY=\n-----END PRIVATE KEY-----\n",
+      "client_email": "firebase-adminsdk-fbsvc@senkl-25cc8.iam.gserviceaccount.com",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token"
+    }
+    cred = credentials.Certificate(FB_CRED)
+    firebase_admin.initialize_app(cred)
+db = firestore.client()
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
