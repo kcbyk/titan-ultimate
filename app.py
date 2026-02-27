@@ -1,5 +1,6 @@
-import os, requests, base64
-from flask import Flask, request, jsonify
+import os, requests, base64, firebase_admin
+from firebase_admin import credentials, firestore
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
@@ -18,34 +19,42 @@ ENCRYPTED_KEYS = [
 ]
 GROQ_KEYS = [base64.b64decode(k).decode('utf-8') for k in ENCRYPTED_KEYS]
 
-def zeka_motoru(prompt):
-    for key in GROQ_KEYS:
-        try:
-            res = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {key}"},
-                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "system", "content": "Sen S.E.N.O.L TITAN-X'sin. Şenol'un otonom şirket asistanısın."}, {"role": "user", "content": prompt}]},
-                timeout=12
-            )
-            if res.status_code == 200: return res.json()['choices'][0]['message']['content']
-        except: continue
-    return "⚠️ API limitleri doldu!"
+# --- 🔥 FIREBASE BAĞLANTISI (JSON VERİSİYLE MÜHÜRLENDİ) ---
+if not firebase_admin._apps:
+    cred_json = {
+      "type": "service_account",
+      "project_id": "senkl-25cc8",
+      "private_key_id": "4ef6b0fa9c3e4eb09fc482a65b503fcc0172311d",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDdsfIK0ZVH7pb2\nggAKCjQxqZuPURPkEPoLzh2fXpnvrsvHkN0e4r/hPqOx66F3xhaxsNwECRVz4h7o\n6RLQMbvfrLFTRBP6MmemNO2wfmvPaNsDCFnr+8T1ALQ4K58ExCEqORQADrMGSaQe\n4Rj5KFZ7elRX23BaXopJwgHi/81RzpT5oSuMpsRZUVvNcy0fa4baPGmPaA63JmLZ\nyxrQ+6/nxE1o/Q1AOuXPNwbxXYPXLQJZFyEE35t9QZoeDUgIhogKKuGmTNA1ONVe\no6oaUkXDAEMUGreizqn8sDKYo2Q8FHf6k1ThFLYar+4NBlqK/UYtqTUiLhuA3W01\nuImaHzKJAgMBAAECggEAEOL9DNXqCRCjbyN33Uvprd69eq0yVqz0XvHUT89k6lzm\nKM1gCno7I20iCutn4Te1gtN17tjCSZFvyU33oOQo62C8IRuOagBs5LwjXs5CaAoU\npKZ+Mvt6hS8Iiz7HXhWScSTn4Rk9ib0SQ0fiHxhzffRTeF2+sSOCZRviCOhzO0fc\nszTjCiMT2dULQzlZbFOmNOvuPBAebEekhuLEKb5PE+YKaeEZJRltr9TQD9pbxHOr\nPyMf22rM9TX9B2sIg8JpwdbI68EId43oMycxU/8WACOIJqQCKjnFZnoTaPQjIinv\nEBK14sF7GZb60XLX43yzOtJpS2VLyuQ3z6XjwitGAQKBgQD978z+lQly+XtSPzAc\nu37bzokd/phCRtwnap8cmoM1uA/Pwn8eJHewv3zFsGxWfEbFtEk7JYFhQ7Plhz7R\nV/DaVqTe2Mg9ZTxn0B4KCgGdRU+uRmH975A7sL3PSfcgdmsq/fpFVhicaToCR5Ml\nxNxFV7tYIFNu4ic1SkCPJ/Ae5wKBgQDffxStBG3U0JxXFJbto0ENEVWYSLDm4TWt\nj55MVyoTglB5jUlEH7uuBcDTENFm2huV743zE1WXwz+kT9Q17mIdEqzYAYUtcvD0\nEQPBIYZMoh++8td0DBFSYvKzj+1JMUyFFsNr+wRqWzM7v9OMPoJMwfKTRgdvEmdP\nhDOzd/olDwKBgQDs2Wkjn1ED60yqBwPSGNOXI0njLx9G2h7nqNwlarytMzOUPb4h\nGDSHJ+Ox4/74n8vHBYQ0ZaQKW4KEuKPP0K12iNAYhqwmD7HKxmPuSyz8SrSqQT2P\nA45NDmnL2RpmLe2BWQjA+S/VW5ReofHOjZJCHzU/Wk9Xohqd6tbSb5bYywKBgQCF\fllyMqgLqoMHfHPeA1oynPz8VcbcUP6H6bXKsXGfb4Hz6JEvkKjAfA09xNjezz4U\n455s50qDuIrF8Sy2/ek6plH5P4c1q2cC0Trl28lk8p11p4VLen3KMPH4kOpRgpHL\nGNqnH6r2f/ztHloUda3MfTgQAY8lJ9/vXe6nru0JvwKBgG2h2MK62LAw05Rs8vq7\n4J9Y5CbQQXfv52pJzDWZLsGp78mpiGCY+uS1sICDOtUkBPotFiU2UX10d4wL5HGP\nmgfDEouf5KGyT6oftzsOPGJf/n0so8vhKgdu46bjaNolvtSx58cFH1Emxi41aPdD\nvIeWRWHyVvq9rZkZtsjor6+9\n-----END PRIVATE KEY-----\n",
+      "client_email": "firebase-adminsdk-bvc-4ef6b0fa9c@senkl-25cc8.iam.gserviceaccount.com",
+      "client_id": "115314493289391907128",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-bvc-4ef6b0fa9c%40senkl-25cc8.iam.gserviceaccount.com",
+      "universe_domain": "googleapis.com"
+    }
+    cred = credentials.Certificate(cred_json)
+    firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 @app.route('/')
-def ana_sayfa():
-    try:
-        # Arayüzü artık başka bir dosyadan (index.html) çekiyoruz
-        with open('index.html', 'r', encoding='utf-8') as f:
-            return f.read()
-    except Exception as e:
-        return f"Arayüz dosyası (index.html) bulunamadı! Hata: {str(e)}"
+def index():
+    return send_from_directory('.', 'index.html')
 
 @app.route('/api/sor', methods=['POST'])
 def sor():
     mesaj = request.json.get('msg')
-    cevap = zeka_motoru(mesaj)
+    # AI Motoru
+    cevap = "Sistem aktif."
+    for key in GROQ_KEYS:
+        try:
+            res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers={"Authorization": f"Bearer {key}"}, json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": mesaj}]}, timeout=10)
+            if res.status_code == 200: 
+                cevap = res.json()['choices'][0]['message']['content']
+                break
+        except: continue
     return jsonify({"cevap": cevap})
 
 if __name__ == "__main__":
     app.run()
-    
