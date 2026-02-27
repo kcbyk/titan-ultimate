@@ -2,25 +2,70 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>TITAN-X OMEGA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TITAN-X OMEGA MERKEZİ</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
-        #chat { border: 1px solid #0f0; height: 300px; overflow-y: scroll; margin-bottom: 10px; padding: 10px; }
-        .m { margin-bottom: 10px; }
+        body { background-color: #070a13; color: #00ffcc; font-family: monospace; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
+        .header { background: #03050a; padding: 15px; border-bottom: 2px solid #00ffcc; text-align: center; box-shadow: 0 0 15px rgba(0,255,204,0.2); }
+        .header h1 { margin: 0; font-size: 20px; text-shadow: 0 0 10px #00ffcc; }
+        .status { font-size: 11px; color: #0f0; margin-top: 5px; letter-spacing: 1px; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 15px; border-radius: 8px; max-width: 85%; font-size: 14px; word-wrap: break-word; line-height: 1.5; }
+        .user { align-self: flex-end; background: #141f33; border: 1px solid #2a3d5e; color: #8bb4f7; border-bottom-right-radius: 0; }
+        .ai { align-self: flex-start; background: #061513; border: 1px solid #00ffcc; color: #e0ffff; border-bottom-left-radius: 0; }
+        .isim { font-weight: bold; font-size: 11px; margin-bottom: 8px; display: block; opacity: 0.8; }
+        .user .isim { color: #58a6ff; }
+        .ai .isim { color: #00ffcc; }
+        .panel { background: #03050a; padding: 15px 20px; display: flex; gap: 10px; border-top: 1px solid #1a2333; }
+        input { flex: 1; background: #0b111c; border: 1px solid #00ffcc; color: #00ffcc; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 14px; outline: none; }
+        input:focus { box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+        button { background: #00ffcc; color: #000; border: none; padding: 0 25px; border-radius: 6px; font-weight: bold; font-family: monospace; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
-    <div id="chat">Sistem Başlatıldı...</div>
-    <input type="text" id="in">
-    <button onclick="g()">GÖNDER</button>
+    <div class="header">
+        <h1>TITAN-X OMEGA</h1>
+        <div class="status">SUNUCU: KOYEB • MİMARİ: AYRIK • DURUM: KUSURSUZ</div>
+    </div>
+    <div id="chat">
+        <div class="msg ai"><span class="isim">SİSTEM</span>Koyeb sunucuları devrede. Emirlerini bekliyorum Patron.</div>
+    </div>
+    <div class="panel">
+        <input type="text" id="komut" placeholder="Emret..." onkeypress="if(event.key === 'Enter') gonder()">
+        <button onclick="gonder()">GÖNDER</button>
+    </div>
+
     <script>
-        async function g() {
-            let i = document.getElementById('in');
-            let m = i.value;
-            document.getElementById('chat').innerHTML += `<div class='m'>Şenol: ${m}</div>`;
-            let res = await fetch('/api/sor', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({msg: m})});
-            let d = await res.json();
-            document.getElementById('chat').innerHTML += `<div class='m'>TITAN: ${d.cevap}</div>`;
+        async function gonder() {
+            let input = document.getElementById('komut');
+            let metin = input.value.trim();
+            if (!metin) return;
+            input.value = '';
+
+            let chat = document.getElementById('chat');
+            chat.innerHTML += `<div class="msg user"><span class="isim">CEO ŞENOL</span>${metin}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+
+            let id = "b_" + Date.now();
+            chat.innerHTML += `<div class="msg ai" id="${id}"><span class="isim">TITAN-X</span>İşleniyor...</div>`;
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                let istek = await fetch('/api/sor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ msg: metin })
+                });
+                let yanit = await istek.json();
+                
+                document.getElementById(id).remove();
+                chat.innerHTML += `<div class="msg ai"><span class="isim">TITAN-X</span>${yanit.cevap}</div>`;
+            } catch (e) {
+                document.getElementById(id).remove();
+                chat.innerHTML += `<div class="msg ai" style="border-color: red; color: red;"><span class="isim">HATA</span>Sunucu bağlantısı koptu.</div>`;
+            }
+            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 </body>
