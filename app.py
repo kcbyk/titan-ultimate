@@ -1,5 +1,5 @@
-import os, time, requests, base64
-from flask import Flask, request, jsonify, render_template_string
+import requests, base64
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -18,17 +18,13 @@ ENCRYPTED_KEYS = [
 ]
 GROQ_KEYS = [base64.b64decode(k).decode('utf-8') for k in ENCRYPTED_KEYS]
 
-# --- 🧠 GEÇİCİ RAM HAFIZASI (Firebase Devre Dışı) ---
-# Sohbetler şimdilik sunucu hafızasında tutulacak. Sunucu yeniden başlarsa silinir.
-gecici_hafiza = []
-
 def titan_x_zeka_motoru(prompt):
     for key in GROQ_KEYS:
         try:
             res = requests.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {key}"},
-                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "system", "content": "Sen S.E.N.O.L TITAN-X'sin. Siber güvenlik ve yazılım uzmanısın. Kullanıcıya Patron diye hitap et."}, {"role": "user", "content": prompt}]},
+                json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "system", "content": "Sen S.E.N.O.L TITAN-X'sin. Siber güvenlik ve yazılım dehasısın. Kullanıcıya Patron diye hitap et."}, {"role": "user", "content": prompt}]},
                 timeout=12
             )
             if res.status_code == 200: return res.json()['choices'][0]['message']['content']
@@ -37,99 +33,90 @@ def titan_x_zeka_motoru(prompt):
 
 @app.route('/')
 def ana_panel():
-    try:
-        return render_template_string(GELISMIS_ARAYUZ, history=gecici_hafiza, status="TEST MODU (FIREBASE KAPALI)")
-    except Exception as e:
-        return f"<div style='background:black; color:red; padding:20px; font-family:monospace; font-size:18px;'><h1>ARAYÜZ HATASI!</h1><p>{str(e)}</p></div>"
+    # Güvenli, çökmez saf HTML arayüzü
+    return BASIT_AMA_GUCLU_ARAYUZ
 
 @app.route('/komut_gonder', methods=['POST'])
 def komut_gonder():
     kullanici_mesaji = request.json.get('msg')
-    
-    # Kullanıcı mesajını RAM'e ekle
-    gecici_hafiza.append({'role': 'user', 'content': kullanici_mesaji})
-    
-    # TITAN-X yanıtlasın ve RAM'e eklensin
     titan_yaniti = titan_x_zeka_motoru(kullanici_mesaji)
-    gecici_hafiza.append({'role': 'assistant', 'content': titan_yaniti})
-    
     return jsonify({"response": titan_yaniti})
 
-# --- MÜKEMMEL ARAYÜZ (GÜVENLİ CSS) ---
-GELISMIS_ARAYUZ = """
+# --- KURŞUN GEÇİRMEZ ARAYÜZ (Mobil Uyumlu) ---
+BASIT_AMA_GUCLU_ARAYUZ = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TITAN-X OMEGA MERKEZİ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TITAN-X KONTROL PANELİ</title>
     <style>
-        body { background-color: #070a13; color: #00ffcc; font-family: monospace; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
-        .header { background: #03050a; padding: 15px; border-bottom: 2px solid #00ffcc; text-align: center; }
-        .header h1 { margin: 0; font-size: 20px; text-shadow: 0 0 10px #00ffcc; }
-        .status { font-size: 12px; color: #ffeb3b; margin-top: 5px; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        #chat-kutu { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 12px; border-radius: 8px; max-width: 85%; font-size: 14px; word-wrap: break-word; }
-        .user { align-self: flex-end; background: #141f33; border: 1px solid #2a3d5e; color: #8bb4f7; }
-        .assistant { align-self: flex-start; background: #061513; border: 1px solid #00ffcc; color: #e0ffff; }
-        .isim-etiket { font-weight: bold; font-size: 11px; margin-bottom: 5px; display: block; }
-        .user .isim-etiket { color: #58a6ff; }
-        .assistant .isim-etiket { color: #00ffcc; }
-        .kontrol-paneli { background: #03050a; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #1a2333; }
-        input { flex: 1; background: #0b111c; border: 1px solid #00ffcc; color: #00ffcc; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 14px; }
-        button { background: #00ffcc; color: #000; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; font-family: monospace; cursor: pointer; }
+        body { background-color: #050505; color: #00ffcc; font-family: monospace; padding: 15px; margin: 0; }
+        .kutu { border: 2px solid #00ffcc; padding: 10px; margin-bottom: 20px; text-align: center; box-shadow: 0 0 10px #00ffcc; }
+        #chat { height: 60vh; overflow-y: scroll; border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #0a0a0a; border-radius: 5px; }
+        .msg { margin-bottom: 15px; padding: 10px; border-radius: 5px; line-height: 1.4; word-wrap: break-word; }
+        .user { background: #1a2639; color: #66b3ff; border-left: 4px solid #66b3ff; }
+        .titan { background: #0d1a18; color: #00ffcc; border-left: 4px solid #00ffcc; }
+        .isim { font-weight: bold; font-size: 12px; margin-bottom: 5px; display: block; opacity: 0.8; }
+        .input-alan { display: flex; gap: 10px; }
+        input { flex: 1; padding: 15px; background: #000; border: 1px solid #00ffcc; color: #00ffcc; outline: none; border-radius: 5px; font-family: monospace; font-size: 16px; }
+        button { padding: 15px 20px; background: #00ffcc; color: #000; font-weight: bold; border: none; cursor: pointer; border-radius: 5px; font-family: monospace; font-size: 16px; }
+        button:active { background: #fff; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>TITAN-X OMEGA</h1>
-        <div class="status">SİSTEM DURUMU: {{ status }}</div>
+
+    <div class="kutu">
+        <h2>🚀 TITAN-X OMEGA AKTİF</h2>
+        <p style="font-size: 12px; color: #aaa;">Eğer bu paneli görüyorsan, teşhisin %100 doğruydu Patron!</p>
     </div>
-    
-    <div id="chat-kutu">
-        {% for h in history %}
-            <div class="msg {{ 'user' if h.role == 'user' else 'assistant' }}">
-                <span class="isim-etiket">{{ 'CEO ŞENOL' if h.role == 'user' else 'TITAN-X' }}</span>
-                {{ h.content }}
-            </div>
-        {% endfor %}
+
+    <div id="chat">
+        <div class="msg titan"><span class="isim">SİSTEM MESAJI</span>Emirlerini bekliyorum...</div>
     </div>
-    
-    <div class="kontrol-paneli">
-        <input type="text" id="komut-satiri" placeholder="Emret Patron...">
-        <button onclick="atesle()">İLET</button>
+
+    <div class="input-alan">
+        <input type="text" id="komut" placeholder="Emrini yaz...">
+        <button onclick="atesle()">GÖNDER</button>
     </div>
 
     <script>
         async function atesle() {
-            const input = document.getElementById('komut-satiri');
-            const mesaj = input.value.trim();
+            let input = document.getElementById('komut');
+            let mesaj = input.value.trim();
             if (!mesaj) return;
             
             input.value = '';
-            const chatKutu = document.getElementById('chat-kutu');
-            chatKutu.innerHTML += `<div class='msg user'><span class='isim-etiket'>CEO ŞENOL</span>${mesaj}</div>`;
-            chatKutu.scrollTop = chatKutu.scrollHeight;
+            let chat = document.getElementById('chat');
             
+            chat.innerHTML += `<div class="msg user"><span class="isim">CEO ŞENOL</span>${mesaj}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+            
+            chat.innerHTML += `<div class="msg titan" id="yukleniyor"><span class="isim">TITAN-X</span>İşleniyor...</div>`;
+            chat.scrollTop = chat.scrollHeight;
+
             try {
-                const yanit = await fetch('/komut_gonder', {
+                let yanit = await fetch('/komut_gonder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ msg: mesaj })
                 });
-                const veri = await yanit.json();
-                chatKutu.innerHTML += `<div class='msg assistant'><span class='isim-etiket'>TITAN-X</span>${veri.response}</div>`;
+                let veri = await yanit.json();
+                
+                document.getElementById('yukleniyor').remove();
+                chat.innerHTML += `<div class="msg titan"><span class="isim">TITAN-X</span>${veri.response}</div>`;
             } catch (hata) {
-                chatKutu.innerHTML += `<div class='msg assistant' style='border-color: red;'>BAĞLANTI HATASI</div>`;
+                document.getElementById('yukleniyor').remove();
+                chat.innerHTML += `<div class="msg titan" style="border-left: 4px solid red; color: red;"><span class="isim">HATA</span>Sistem bağlantısı koptu.</div>`;
             }
-            chatKutu.scrollTop = chatKutu.scrollHeight;
+            chat.scrollTop = chat.scrollHeight;
         }
     </script>
+
 </body>
 </html>
 """
 
 if __name__ == "__main__":
     app.run()
-            
+    
